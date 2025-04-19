@@ -21,7 +21,8 @@ class DFSSolver:
                 self.best_makespan = makespan
                 self.best_schedule = schedule.copy()
             return
-
+        if(max(job_end)>self.best_makespan):
+            return
         for job_id in range(self.num_jobs):
             step = job_steps[job_id]
             if step >= self.problem.get_num_operations(job_id):
