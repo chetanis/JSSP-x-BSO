@@ -1,12 +1,12 @@
 import sys
 import time
-from Bso import BSO
+from Bso import BSO, Solution
 from Dfs import DFSSolver
 from gridSearch import grid_search, plot_convergence
 from problem import JSSPProblem
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
 
 def plot_gantt(solution):
     problem = solution.problem
@@ -90,142 +90,193 @@ def lire_instance_taillard(chemin_fichier):
 
 
 
+import time
+from typing import List, Tuple
 import matplotlib.pyplot as plt
 
-def read_makespan_history(filename):
-    iterations = []
-    makespans = []
-    with open(filename, 'r') as file:
-        for line in file:
-            if line.startswith("Iteration"):
-                parts = line.strip().split(":")
-                iteration = int(parts[0].split()[1])
-                makespan = int(parts[1])
-                iterations.append(iteration)
-                makespans.append(makespan)
-    return iterations, makespans
-
-def plot_makespan_convergence(filename, threshold=1376):
-    iterations, makespans = read_makespan_history(filename)
+def main():
+    print("Job Shop Scheduling Problem Solver")
+    print("Choose an algorithm:")
+    print("1. Bee Swarm Optimization (BSO)")
+    print("2. Depth-First Search (DFS - exact method)")
     
-    plt.figure(figsize=(10, 6))
-    plt.plot(iterations, makespans, label="Makespan per Iteration", color='blue')
-    plt.axhline(y=threshold, color='red', linestyle='--', label=f"Threshold = {threshold}")
-
-    plt.xlabel('Iteration')
-    plt.ylabel('Makespan')
-    plt.title('Makespan vs. Iteration')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
-
-import matplotlib.pyplot as plt
-
-import matplotlib.pyplot as plt
-
-# Data
-sizes = ['20x15', '30x15', '50x15', '100x20']
-jobs_machines = [300, 450, 750, 2000]  # jobs * machines
-times_bso = [20, 34, 98, 458]
-
-times_hours = [t / 60 for t in times_bso]
-
-# Plot
-plt.figure(figsize=(8, 5))
-plt.plot(jobs_machines, times_hours, marker='o', color='navy', linewidth=2)
-plt.xticks(jobs_machines, sizes)
-plt.xlabel('Taille de la matrice (Jobs x Machines)')
-plt.ylabel('Temps (minutes)')
-plt.title('Temps d\'exécution de l\'algorithme BSO selon la taille du problème JSSP')
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-
-
-# Example usage:
-# plot_makespan_convergence("results_tai100_20_modified2.txt",threshold=5464)
-
-
-# print(sys.version)
-
-
-# if __name__ == "__main__":
-#     # Définir le problème (exemple simple)
-#     chemin = "dataSet/tai20_15.txt"  # Remplace avec le vrai nom du fichier
-
-#     jobs = lire_instance_taillard(chemin)
-   
-#     problem = JSSPProblem(jobs)
-
-#     # solver = DFSSolver(problem)
-#     # Grid search parameters
-#     # param_grid = {
-#     #     'flip': [8 , 9,10],
-#     #     'max_iter': [150],
-#     #     'k': [9,10,11],
-#     #     'local_iter': [25, 30, 35],
-#     #     'taboo_size': [25, 30, 35]
-#     # }
+    algorithm_choice = input("Enter your choice (1 or 2): ")
     
-#     # # Run grid search
-#     # print("Starting grid search...")
-#     # best_params, best_makespan, results = grid_search(problem, param_grid, num_runs=2)
-
-
+    print("\nAvailable instances:")
+    print("1. tai20_15.txt (20 jobs, 15 machines)")
+    print("2. tai30_15.txt (30 jobs, 15 machines)")
+    print("3. tai50_15.txt (50 jobs, 15 machines)")
+    print("4. tai100_20.txt (100 jobs, 20 machines)")
+    print("5. 2 jobs, 3 machines")
     
+    instance_choice = input("Enter instance number (1-5): ")
     
-#     print("\nRunning BSO with best parameters...")
-#     # Run BSO with best parameters
-#     bso = BSO(
-#         problem,
-#         flip=8,
-#         max_iter=150,
-#         k=9,
-#         local_iter=25,
-#         taboo_size=35
-#     )
-#     best_overall_schedule = None
-#     best_overall_makespan = float('inf')
-#     best_overall_history = None
-#     besttime = float('inf')
-
-#     for i in range(5):
-#         print(f"Run {i + 1}...")
-#         start_time = time.time()
-#         schedule,makespan , history= bso.run()
-#         run_time = time.time() - start_time
-
-#         print(f"Run {i + 1} - Makespan: {makespan}, Time: {run_time:.2f} seconds")
-
-#         if makespan < best_overall_makespan:
-#             best_overall_makespan = makespan
-#             best_overall_schedule = schedule
-#             best_overall_history = history
-#             besttime = run_time
-
-#     best_schedule = best_overall_schedule
-#     best_makespan = best_overall_makespan
-#     history = best_overall_history
-
-#     plot_gantt(bso.best_solution)
+    # Map instance choices to file names
+    instance_files = {
+        '1': "dataSet/tai20_15.txt",
+        '2': "dataSet/tai30_15.txt",
+        '3': "dataSet/tai50_15.txt",
+        '4': "dataSet/tai100_20.txt",
+        '5': "dfs",
+    }
     
+    # Best parameters for each instance (from your table)
+    instance_params = {
+        '1': {'flip': 8, 'max_iter': 150, 'k': 9, 'max_steps': 25, 'max_chances': 3},
+        '2': {'flip': 10, 'max_iter': 150, 'k': 9, 'max_steps': 35, 'max_chances': 3},
+        '3': {'flip': 10, 'max_iter': 150, 'k': 9, 'max_steps': 35, 'max_chances': 5},
+        '4': {'flip': 11, 'max_iter': 150, 'k': 11, 'max_steps': 35, 'max_chances': 5},
+        '5': {'flip': 8, 'max_iter': 150, 'k': 9, 'max_steps': 25, 'max_chances': 3}
+    }
     
-    # Create convergence plot
-    # instance_name =  in.split('/')[-1].split('.')[0]
-    # instance_name =  "tai6_6"
-    # plot_convergence(history, f"BSO Convergence - {instance_name}")
+    # Load the problem instance
+    chemin = instance_files[instance_choice]
+    if chemin == "dfs":
+        jobs = [
+            [(0, 2), (1, 2), (3,4)],  # Job 0: Machine 0 for 2 time units, then Machine 1 for 2 time units
+            [(1, 2), (0, 5), (3,1)]   # Job 1: Machine 1 for 2 time units, then Machine 0 for 2 time units
+        ]
+    else:
+        jobs = lire_instance_taillard(chemin)
     
-    # print(f"Best makespan: {best_makespan}")
+    problem = JSSPProblem(jobs)
     
-    # # Save results to files for future reference
-    # with open(f"results_dfs_{instance_name}.txt", "w") as f:
-    #     f.write(f"Instance: {instance_name}\n")
-    #     # f.write(f"Best parameters: {best_params}\n")
-    #     f.write(f"Best makespan: {best_makespan}\n")
-    #     f.write(f"Optimal run time: {besttime:.2f} seconds\n")
-    #     f.write("\nMakespan history:\n")
-    #     for iteration, makespan in history:
-    #         f.write(f"Iteration {iteration}: {makespan}\n")
+    if algorithm_choice == '1':
+        # Run BSO with best parameters for selected instance
+        params = instance_params[instance_choice]
+        print(f"\nRunning BSO with parameters: {params}")
+        
+        bso = BSO(
+            problem,
+            flip=params['flip'],
+            max_iter=params['max_iter'],
+            k=params['k'],
+            max_steps=params['max_steps'],
+            max_chances=params['max_chances']
+        )
+        
+        best_overall_schedule = None
+        best_overall_makespan = float('inf')
+        best_overall_history = None
+        best_time = float('inf')
+        best_solution = None
+        
+        num_runs = 5  # Number of independent runs
+        
+        for i in range(num_runs):
+            print(f"\nRun {i + 1}/{num_runs}...")
+            start_time = time.time()
+            schedule, makespan, history = bso.run()
+            run_time = time.time() - start_time
+            
+            print(f"Run {i + 1} - Makespan: {makespan}, Time: {run_time:.2f} seconds")
+            
+            if makespan < best_overall_makespan:
+                best_overall_makespan = makespan
+                best_overall_schedule = schedule
+                best_overall_history = history
+                best_time = run_time
+                best_solution = bso.best_solution
+        
+        print(f"\nBest solution found - Makespan: {best_overall_makespan}, Time: {best_time:.2f} seconds")
+        
+        # Plot convergence history
+        if best_overall_history:
+            iterations = [x[0] for x in best_overall_history]
+            makespans = [x[1] for x in best_overall_history]
+            
+            plt.figure(figsize=(10, 6))
+            plt.plot(iterations, makespans, 'b-')
+            plt.title('Convergence History')
+            plt.xlabel('Iteration')
+            plt.ylabel('Makespan')
+            plt.grid(True)
+            plt.show()
+        
+        # Plot Gantt chart
+        plot_gantt(best_solution)
+        
+    elif algorithm_choice == '2':
+        # Run DFS
+        if int(instance_choice) != 5:
+            print("\nWarning: DFS is only practical for very small instances.")
+            print("Larger instances may take prohibitively long time or run out of memory.")
+            proceed = input("Do you want to continue anyway? (y/n): ")
+            if proceed.lower() != 'y':
+                return
+            
+        
+        print("\nRunning DFS (this may take a while for larger instances)...")
+        dfs = DFSSolver(problem)
+        start_time = time.time()
+        makespan, schedule = dfs.solve()
+        run_time = time.time() - start_time
+        
+        print(f"\nOptimal solution found - Makespan: {makespan}, Time: {run_time:.2f} seconds")
+        
+        # Plot Gantt chart
+        if schedule:
+            # Need to convert DFS schedule to Solution object for plotting
+            permutation = []
+            for op in schedule:
+                permutation.append((op[0], op[1]))
+            
+            solution = Solution(problem, permutation)
+            solution.schedule = schedule
+            solution.makespan = makespan
+            plot_gantt(solution)
+    else:
+        print("Invalid choice. Please run again and select 1 or 2.")
 
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# not for now
+
+
+
+# def read_makespan_history(filename):
+#     iterations = []
+#     makespans = []
+#     with open(filename, 'r') as file:
+#         for line in file:
+#             if line.startswith("Iteration"):
+#                 parts = line.strip().split(":")
+#                 iteration = int(parts[0].split()[1])
+#                 makespan = int(parts[1])
+#                 iterations.append(iteration)
+#                 makespans.append(makespan)
+#     return iterations, makespans
+
+# def plot_makespan_convergence(filename, threshold=1376):
+#     iterations, makespans = read_makespan_history(filename)
+    
+#     plt.figure(figsize=(10, 6))
+#     plt.plot(iterations, makespans, label="Makespan per Iteration", color='blue')
+#     plt.axhline(y=threshold, color='red', linestyle='--', label=f"Threshold = {threshold}")
+
+#     plt.xlabel('Iteration')
+#     plt.ylabel('Makespan')
+#     plt.title('Makespan vs. Iteration')
+#     plt.legend()
+#     plt.grid(True)
+#     plt.tight_layout()
+#     plt.show()
