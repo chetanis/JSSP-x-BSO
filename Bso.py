@@ -171,16 +171,16 @@ class Solution:
         return critical_ops
 
 class BSO:
-    def __init__(self, problem, flip=3, max_iter=100, k=20, local_iter=10, taboo_size=50):
+    def __init__(self, problem, flip=3, max_iter=100, k=20, max_steps=10, taboo_size=50,max_chances=3):
         self.problem = problem
         self.flip = flip  # Détermine le nombre de variables à inverser (n/flip)
         self.max_iter = max_iter  # Nombre maximum d'itérations
         self.k = k  # Taille de la population/zone de recherche
-        self.local_iter = local_iter  # Nombre d'itérations pour la recherche locale
+        self.max_steps = max_steps  # Nombre d'itérations pour la recherche locale
         self.best_solution = None
         self.sref = None
-        self.nb_chances = 3
-        self.max_chances = 3
+        self.nb_chances = max_chances
+        self.max_chances = max_chances
         self.dense_list = []  # Liste des meilleures solutions locales
         self.taboo_list = []  # Liste tabou
         self.taboo_size = taboo_size  # Taille maximale de la liste tabou
@@ -223,7 +223,7 @@ class BSO:
         improved_solution = solution
         best_makespan = solution.makespan
         
-        for _ in range(int(self.local_iter * intensity)):
+        for _ in range(int(self.max_steps * intensity)):
             # Identifier le chemin critique
             critical_ops = improved_solution.get_critical_path()
             

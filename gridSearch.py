@@ -42,8 +42,8 @@ def grid_search(problem, param_grid, num_runs=3):
                 flip=param_dict.get('flip', 4),
                 max_iter=param_dict.get('max_iter', 100),
                 k=param_dict.get('k', 20),
-                local_iter=param_dict.get('local_iter', 20),
-                taboo_size=param_dict.get('taboo_size', 50)
+                max_steps=param_dict.get('max_steps', 20),
+                max_chances=param_dict.get('max_chances', 50)
             )
             
             start_time = time.time()
